@@ -3,7 +3,7 @@ A script to process multiple [EPW files](https://climate.onebuilding.org/papers/
 
 ## How to use
 ```bash
-git clone "<repo_url>"
+git clone git@github.com:Matbbastos/epw-analysis.git
 python -m pip install -r requirements.txt
 
 python -m merge_files_into_parquet.py -h
