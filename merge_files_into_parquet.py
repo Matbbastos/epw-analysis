@@ -14,7 +14,7 @@ from pathlib import Path
 
 import polars as pl
 from ladybug.epw import EPW
-from polars.datatypes import Float64, Int32, Int64, String, Datetime
+from polars.datatypes import Datetime, Float64, Int32, Int64, String
 
 
 def validate_io_paths(args) -> dict[str, Path]:
