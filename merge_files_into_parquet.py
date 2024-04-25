@@ -14,7 +14,7 @@ from pathlib import Path
 
 import polars as pl
 from ladybug.epw import EPW
-from polars.datatypes import Float64, Int32, Int64, String
+from polars.datatypes import Float64, Int32, Int64, String, Datetime
 
 
 def validate_io_paths(args) -> dict[str, Path]:
@@ -129,6 +129,7 @@ def main(args):
             "Elevation": Float64,
             "Scenario/Code": String,
             "Scenario/Year": Int32,
+            "Datetime": Datetime,
             "Dry Bulb Temperature": Float64,
             "Dew Point Temperature": Float64,
             "Relative Humidity": Int64,
@@ -163,6 +164,7 @@ def main(args):
                 "Elevation": epw_file.location.elevation,
                 "Scenario/Code": scenario,
                 "Scenario/Year": year,
+                "Datetime": epw_file.dry_bulb_temperature.datetimes,
                 "Dry Bulb Temperature": epw_file.dry_bulb_temperature.values,
                 "Dew Point Temperature": epw_file.dew_point_temperature.values,
                 "Relative Humidity": epw_file.relative_humidity.values,
