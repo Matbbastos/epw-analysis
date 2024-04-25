@@ -1,10 +1,4 @@
 #! /usr/bin/env python3.11
-"""
-This script compiles the EPW files from a directory into one Parquet file.
-
-Author: Matheus Bruhns Bastos
-Last updated on: 2024-04-24
-"""
 import logging
 import statistics
 import time
