@@ -105,7 +105,7 @@ def main(args):
     logging.basicConfig(
         format="%(asctime)s    %(levelname)-8.8s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.DEBUG,
+        level=logging.INFO,
     )
     if args.quiet:
         logging.getLogger().setLevel(logging.WARNING)
