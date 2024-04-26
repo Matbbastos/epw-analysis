@@ -202,8 +202,7 @@ def main(args):
 
     epw_file_collection = list_epw_files(input_dir)
 
-    output_df = pl.DataFrame(
-        schema={
+    output_schema = {
             "City": String,
             "State": String,
             "Latitude": Float64,
@@ -222,8 +221,22 @@ def main(args):
             "Wind Direction": Int64,
             "Wind Speed": Float64,
             "Total Sky Cover": Int64,
-            "Opaque Sky Cover": Int64},
-        strict=False)
+            "Opaque Sky Cover": Int64}
+    if not args.strict:
+        import_start = time.perf_counter()
+        from pythermalcomfort.models import discomfort_index, heat_index, utci  # noqa: F401
+        logging.info(
+            f"Time to import comfort models from 'pythermalcomfort': "
+            f"{time.perf_counter() - import_start:.3f}s")
+
+        output_schema.update({
+            "Discomfort Index": Float64,
+            "Discomfort Condition": String,
+            "Heat Index": Float64,
+            "Universal Thermal Climate Index (UTCI)": Float64,
+            "UTCI Stress Category": String,
+        })
+    output_df = pl.DataFrame(schema=output_schema, strict=False)
 
     process_metrics = {
         "duration": [],
