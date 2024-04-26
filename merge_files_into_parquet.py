@@ -11,6 +11,10 @@ from ladybug.epw import EPW
 from polars.datatypes import Datetime, Float64, Int32, Int64, String
 
 
+UTCI_WIND_LOWER_BOUND = 0.50001
+UTCI_WIND_UPPER_BOUND = 16.99999
+
+
 def validate_io_paths(args) -> dict[str, Path]:
     """
     Validate path to input dir and chosen output file path and return corresponding
@@ -135,6 +139,53 @@ def saturate(value: float, lower_bound: float, upper_bound: float) -> float:
         float: Value after applying saturation.
     """
     return min(max(value, lower_bound), upper_bound)
+
+
+def compute_comfort_models(
+        dry_bulb_temperature: list[float],
+        relative_humidity: list[int],
+        wind_speed: list[float],
+        limit_utci_inputs=True,
+        ) -> dict[str, list]:
+    """
+    Imports Discomfort Index and UTCI functions from 'pythermalcomfort.models', and returns
+    a dictionary with lists of each output, including Heat Index.
+
+    Args:
+        dry_bulb_temperature (tuple[float]): Dry bulb temperature values
+        relative_humidity (tuple[int]): Relative humidity values.
+        wind_speed (tuple[float]): Wind speed values.
+        limit_utci_inputs (bool): Same as 'limit_inputs' flag for 'utci' model. If false, a
+            saturation function is used instead for Wind Speed (ensuring values are kept
+            inside the model's working range).
+
+    Returns:
+        dict[str, list[float | str]]: Object with one key for each output from the models,
+        corresponding values are lists of the computed variables.
+    """
+    from pythermalcomfort.models import discomfort_index, utci
+
+    discomfort_model = discomfort_index(
+        tdb=dry_bulb_temperature,
+        rh=relative_humidity)
+
+    if limit_utci_inputs:
+        wind_speed = [
+            saturate(v, UTCI_WIND_LOWER_BOUND, UTCI_WIND_UPPER_BOUND) for v in wind_speed]
+    utci_model = utci(
+        tdb=dry_bulb_temperature,
+        tr=dry_bulb_temperature,
+        v=wind_speed,
+        rh=relative_humidity,
+        return_stress_category=True,
+        limit_inputs=limit_utci_inputs)
+    return {
+        "discomfort_index": discomfort_model.get("di"),
+        "discomfort_condition": discomfort_model.get("discomfort_condition"),
+        "heat_index": compute_heat_index(dry_bulb_temperature, relative_humidity),
+        "utci": utci_model.get("utci"),
+        "stress_category": utci_model.get("stress_category")
+    }
 
 
 def main(args):
