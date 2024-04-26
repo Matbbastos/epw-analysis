@@ -102,6 +102,7 @@ def parse_filename(file_path: Path) -> dict[str, str | int]:
 
 
 def main(args):
+    setup_start = time.perf_counter()
     logging.basicConfig(
         format="%(asctime)s    %(levelname)-8.8s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -142,6 +143,8 @@ def main(args):
         "exception_counter": 0,
         "exported_csv": False
     }
+
+    logging.info(f"Setup time: {time.perf_counter() - setup_start:.3f}s")
     for index, file in enumerate(sorted(epw_file_collection)):
         start_time = time.perf_counter()
         logging.info(f"Processing started for file '{file.name}'")
