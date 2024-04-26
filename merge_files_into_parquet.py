@@ -263,6 +263,15 @@ if __name__ == '__main__':
         "-q", "--quiet", action="store_true",
         help="turn on quiet mode, which hides log entries of levels lower than WARNING.")
     parser.add_argument(
+        "-s", "--strict", action="store_true",
+        help="prevent computation of comfort model variables, export only original "
+        "variables from EPW file.")
+    parser.add_argument(
+        "-l", "--limit-utci", action="store_true", dest="limit_utci_inputs",
+        help="prevent computation of utci model with values outside of working range. "
+        "Otherwise, use a saturation function in Wind Speed to ensure all values are inside"
+        " working range.")
+    parser.add_argument(
         "--csv", action="store_true", dest="export_csv",
         help="export an extra sample CSV output file from the first EPW file that is "
         "processed, for output validation.")
