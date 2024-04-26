@@ -122,6 +122,20 @@ def compute_heat_index(
         dry_bulb_temperature, relative_humidity, strict=True)]
 
 
+def saturate(value: float, lower_bound: float, upper_bound: float) -> float:
+    """
+    Applies saturation to a value, keeping it between its lower and upper bounds.
+
+    Args:
+        value (float): Value to be saturated.
+        lower_bound (float): Lower boundary.
+        upper_bound (float): Upper boundary.
+
+    Returns:
+        float: Value after applying saturation.
+    """
+    return min(max(value, lower_bound), upper_bound)
+
 
 def main(args):
     setup_start = time.perf_counter()
