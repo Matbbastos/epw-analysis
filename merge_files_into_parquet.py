@@ -90,10 +90,10 @@ def parse_filename(file_path: Path) -> dict[str, str | int]:
     Returns:
         dict[str, str | int]: Scenario and Year key and values.
     """
-    scenario = "baseline"
+    scenario = "Baseline"
     year = int(file_path.stem[-4:])
     if "ssp".casefold() in file_path.stem.casefold():
-        scenario = file_path.stem.split("_")[-2]
+        scenario = file_path.stem.split("_")[-2].upper()
 
     return {
         "scenario": scenario,
