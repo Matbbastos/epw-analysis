@@ -101,6 +101,28 @@ def parse_filename(file_path: Path) -> dict[str, str | int]:
     }
 
 
+def compute_heat_index(
+        dry_bulb_temperature: tuple[float],
+        relative_humidity: tuple[int]) -> list[float]:
+    """
+    Imports Heat Index function from 'pythermalcomfort.models' and uses it to compute the
+    model values for an array of values of temperature and relative humidity. Inputs must
+    have the same size.
+
+    Args:
+        dry_bulb_temperature (tuple[float]): Dry bulb temperature values.
+        relative_humidity (tuple[int]): Relative humidity values.
+
+    Returns:
+        list[float]: Heat index calculated for each item in the input, with same size
+        as inputs.
+    """
+    from pythermalcomfort.models import heat_index
+    return [heat_index(tdb, rh) for tdb, rh in zip(
+        dry_bulb_temperature, relative_humidity, strict=True)]
+
+
+
 def main(args):
     setup_start = time.perf_counter()
     logging.basicConfig(
