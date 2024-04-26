@@ -252,31 +252,49 @@ def main(args):
         epw_file = EPW(file)
         scenario, year = parse_filename(file).values()
         logging.info(f"Found scenario='{scenario}' and year={year} for current file")
+
+        unstructured_data = {
+            "City": epw_file.location.city.replace(".", " "),
+            "State": epw_file.location.state,
+            "Latitude": epw_file.location.latitude,
+            "Longitude": epw_file.location.longitude,
+            "Elevation": epw_file.location.elevation,
+            "Scenario/Code": scenario,
+            "Scenario/Year": year,
+            "Datetime": epw_file.dry_bulb_temperature.datetimes,
+            "Dry Bulb Temperature": epw_file.dry_bulb_temperature.values,
+            "Dew Point Temperature": epw_file.dew_point_temperature.values,
+            "Relative Humidity": epw_file.relative_humidity.values,
+            "Atmospheric Station Pressure":
+                epw_file.atmospheric_station_pressure.values,
+            "Horizontal Infrared Radiation Intensity":
+                epw_file.horizontal_infrared_radiation_intensity.values,
+            "Direct Normal Radiation": epw_file.direct_normal_radiation.values,
+            "Diffuse Horizontal Radiation":
+                epw_file.diffuse_horizontal_radiation.values,
+            "Wind Direction": epw_file.wind_direction.values,
+            "Wind Speed": epw_file.wind_speed.values,
+            "Total Sky Cover": epw_file.total_sky_cover.values,
+            "Opaque Sky Cover": epw_file.opaque_sky_cover.values}
+
+        if not args.strict:
+            model_output = compute_comfort_models(
+                epw_file.dry_bulb_temperature.values,
+                epw_file.relative_humidity.values,
+                epw_file.wind_speed.values,
+                args.limit_utci_inputs)
+            logging.info(f"Successfuly computed comfort models for file '{file.name}'")
+
+            unstructured_data.update({
+                "Discomfort Index": model_output.get("discomfort_index"),
+                "Discomfort Condition": model_output.get("discomfort_condition"),
+                "Heat Index": model_output.get("heat_index"),
+                "Universal Thermal Climate Index (UTCI)": model_output.get("utci"),
+                "UTCI Stress Category": model_output.get("stress_category")
+            })
+
         try:
-            current_data = pl.DataFrame({
-                "City": epw_file.location.city.replace(".", " "),
-                "State": epw_file.location.state,
-                "Latitude": epw_file.location.latitude,
-                "Longitude": epw_file.location.longitude,
-                "Elevation": epw_file.location.elevation,
-                "Scenario/Code": scenario,
-                "Scenario/Year": year,
-                "Datetime": epw_file.dry_bulb_temperature.datetimes,
-                "Dry Bulb Temperature": epw_file.dry_bulb_temperature.values,
-                "Dew Point Temperature": epw_file.dew_point_temperature.values,
-                "Relative Humidity": epw_file.relative_humidity.values,
-                "Atmospheric Station Pressure":
-                    epw_file.atmospheric_station_pressure.values,
-                "Horizontal Infrared Radiation Intensity":
-                    epw_file.horizontal_infrared_radiation_intensity.values,
-                "Direct Normal Radiation": epw_file.direct_normal_radiation.values,
-                "Diffuse Horizontal Radiation":
-                    epw_file.diffuse_horizontal_radiation.values,
-                "Wind Direction": epw_file.wind_direction.values,
-                "Wind Speed": epw_file.wind_speed.values,
-                "Total Sky Cover": epw_file.total_sky_cover.values,
-                "Opaque Sky Cover": epw_file.opaque_sky_cover.values},
-                )
+            current_data = pl.DataFrame(unstructured_data)
         except Exception as e:
             logging.exception(
                 f"Could not extend the output dataframe with data from current file "
