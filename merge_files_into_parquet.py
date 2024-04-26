@@ -221,7 +221,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "path", help="path of the directory containing the EPW files.", type=str)
     parser.add_argument(
-        "-o", "--output",
+        "-o", "--output", metavar="path/out.parquet",
         help="output filename. Defaults to a standard name with timestamp.", type=str)
     parser.add_argument(
         "-q", "--quiet", action="store_true",
