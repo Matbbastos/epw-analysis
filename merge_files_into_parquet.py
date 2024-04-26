@@ -302,11 +302,13 @@ def main(args):
             process_metrics["exception_counter"] += 1
         else:
             output_df.extend(current_data)
+
             file_counter = index + 1 - process_metrics["exception_counter"]
+            process_metrics["duration"].append(time.perf_counter() - start_time)
             logging.info(
-                f"({file_counter}/{len(epw_file_collection)}) Added data from "
-                f"file '{file.name}' to the output dataframe")
-        process_metrics["duration"].append(time.perf_counter() - start_time)
+                f"({file_counter}/{len(epw_file_collection)}) Added data from file "
+                f"'{file.name}' to the output dataframe in "
+                f"{round(1000*process_metrics['duration'][-1])}ms")
 
         if args.export_csv and not process_metrics["exported_csv"]:
             current_data.write_csv(Path(output_filename.stem).with_suffix(".csv"))
