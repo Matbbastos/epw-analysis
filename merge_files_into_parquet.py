@@ -106,16 +106,16 @@ def parse_filename(file_path: Path) -> dict[str, str | int]:
 
 
 def compute_heat_index(
-        dry_bulb_temperature: tuple[float],
-        relative_humidity: tuple[int]) -> list[float]:
+        dry_bulb_temperature: list[float],
+        relative_humidity: list[int]) -> list[float]:
     """
     Imports Heat Index function from 'pythermalcomfort.models' and uses it to compute the
     model values for an array of values of temperature and relative humidity. Inputs must
     have the same size.
 
     Args:
-        dry_bulb_temperature (tuple[float]): Dry bulb temperature values.
-        relative_humidity (tuple[int]): Relative humidity values.
+        dry_bulb_temperature (list[float]): Dry bulb temperature values.
+        relative_humidity (list[int]): Relative humidity values.
 
     Returns:
         list[float]: Heat index calculated for each item in the input, with same size
@@ -152,16 +152,16 @@ def compute_comfort_models(
     a dictionary with lists of each output, including Heat Index.
 
     Args:
-        dry_bulb_temperature (tuple[float]): Dry bulb temperature values
-        relative_humidity (tuple[int]): Relative humidity values.
-        wind_speed (tuple[float]): Wind speed values.
+        dry_bulb_temperature (list[float]): Dry bulb temperature values
+        relative_humidity (list[int]): Relative humidity values.
+        wind_speed (list[float]): Wind speed values.
         limit_utci_inputs (bool): Same as 'limit_inputs' flag for 'utci' model. If false, a
             saturation function is used instead for Wind Speed (ensuring values are kept
             inside the model's working range).
 
     Returns:
-        dict[str, list[float | str]]: Object with one key for each output from the models,
-        corresponding values are lists of the computed variables.
+        dict[str, list]: Object with one key for each output from the models, corresponding
+        values are lists of the computed variables.
     """
     from pythermalcomfort.models import discomfort_index, utci
 
@@ -183,8 +183,8 @@ def compute_comfort_models(
         "discomfort_index": discomfort_model.get("di"),
         "discomfort_condition": discomfort_model.get("discomfort_condition"),
         "heat_index": compute_heat_index(dry_bulb_temperature, relative_humidity),
-        "utci": utci_model.get("utci"),
-        "stress_category": utci_model.get("stress_category")
+        "utci": utci_model.get("utci"),                         # type: ignore
+        "stress_category": utci_model.get("stress_category")    # type: ignore
     }
 
 
