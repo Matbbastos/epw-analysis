@@ -105,89 +105,6 @@ def parse_filename(file_path: Path) -> dict[str, str | int]:
     }
 
 
-def compute_heat_index(
-        dry_bulb_temperature: list[float],
-        relative_humidity: list[int]) -> list[float]:
-    """
-    Imports Heat Index function from 'pythermalcomfort.models' and uses it to compute the
-    model values for an array of values of temperature and relative humidity. Inputs must
-    have the same size.
-
-    Args:
-        dry_bulb_temperature (list[float]): Dry bulb temperature values.
-        relative_humidity (list[int]): Relative humidity values.
-
-    Returns:
-        list[float]: Heat index calculated for each item in the input, with same size
-        as inputs.
-    """
-    from pythermalcomfort.models import heat_index
-    return [heat_index(tdb, rh) for tdb, rh in zip(
-        dry_bulb_temperature, relative_humidity, strict=True)]
-
-
-def saturate(value: float, lower_bound: float, upper_bound: float) -> float:
-    """
-    Applies saturation to a value, keeping it between its lower and upper bounds.
-
-    Args:
-        value (float): Value to be saturated.
-        lower_bound (float): Lower boundary.
-        upper_bound (float): Upper boundary.
-
-    Returns:
-        float: Value after applying saturation.
-    """
-    return min(max(value, lower_bound), upper_bound)
-
-
-def compute_comfort_models(
-        dry_bulb_temperature: list[float],
-        relative_humidity: list[int],
-        wind_speed: list[float],
-        limit_utci_inputs=True,
-        ) -> dict[str, list]:
-    """
-    Imports Discomfort Index and UTCI functions from 'pythermalcomfort.models', and returns
-    a dictionary with lists of each output, including Heat Index.
-
-    Args:
-        dry_bulb_temperature (list[float]): Dry bulb temperature values
-        relative_humidity (list[int]): Relative humidity values.
-        wind_speed (list[float]): Wind speed values.
-        limit_utci_inputs (bool): Same as 'limit_inputs' flag for 'utci' model. If false, a
-            saturation function is used instead for Wind Speed (ensuring values are kept
-            inside the model's working range).
-
-    Returns:
-        dict[str, list]: Object with one key for each output from the models, corresponding
-        values are lists of the computed variables.
-    """
-    from pythermalcomfort.models import discomfort_index, utci
-
-    discomfort_model = discomfort_index(
-        tdb=dry_bulb_temperature,
-        rh=relative_humidity)
-
-    if limit_utci_inputs:
-        wind_speed = [
-            saturate(v, UTCI_WIND_LOWER_BOUND, UTCI_WIND_UPPER_BOUND) for v in wind_speed]
-    utci_model = utci(
-        tdb=dry_bulb_temperature,
-        tr=dry_bulb_temperature,
-        v=wind_speed,
-        rh=relative_humidity,
-        return_stress_category=True,
-        limit_inputs=limit_utci_inputs)
-    return {
-        "discomfort_index": discomfort_model.get("di"),
-        "discomfort_condition": discomfort_model.get("discomfort_condition"),
-        "heat_index": compute_heat_index(dry_bulb_temperature, relative_humidity),
-        "utci": utci_model.get("utci"),                         # type: ignore
-        "stress_category": utci_model.get("stress_category")    # type: ignore
-    }
-
-
 def main(args):
     setup_start = time.perf_counter()
     logging.basicConfig(
@@ -223,12 +140,6 @@ def main(args):
             "Total Sky Cover": Int64,
             "Opaque Sky Cover": Int64}
     if not args.strict:
-        import_start = time.perf_counter()
-        from pythermalcomfort.models import discomfort_index, heat_index, utci  # noqa: F401
-        logging.info(
-            f"Time to import comfort models from 'pythermalcomfort': "
-            f"{time.perf_counter() - import_start:.3f}s")
-
         output_schema.update({
             "Discomfort Index": Float64,
             "Discomfort Condition": String,
@@ -278,6 +189,11 @@ def main(args):
             "Opaque Sky Cover": epw_file.opaque_sky_cover.values}
 
         if not args.strict:
+            import_start = time.perf_counter()
+            from .computation import compute_comfort_models
+            logging.info(
+                f"Time to import comfort model computation module: "
+                f"{time.perf_counter() - import_start:.3f}s")
             model_output = compute_comfort_models(
                 epw_file.dry_bulb_temperature.values,
                 epw_file.relative_humidity.values,
